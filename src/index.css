@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* ─── Custom Theme ────────────────────────────────── */
+@theme {
+  --color-primary: #ea2a33;
+  --color-gold: #d4af37;
+  --color-background-dark: #211111;
+  --color-background-light: #f8f6f6;
+  --color-accent-dark: #472426;
+  --color-history-paper: #f4e4bc;
+
+  --font-display: "Lexend", sans-serif;
+  --font-serif: "Noto Serif", serif;
+}
+
+/* ─── Base ────────────────────────────────────────── */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--font-display);
+}
+
+body {
+  background-color: var(--color-background-dark);
+  color: #f1f5f9;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Custom Scrollbar ────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 10px;
+}
+
+/* ─── Selection ───────────────────────────────────── */
+::selection {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ─── Material Icons Fix ──────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* ─── Overlay Animations ──────────────────────────── */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-in {
+  animation: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
