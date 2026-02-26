@@ -69,7 +69,7 @@ export default function SetupScreen({ onStart }: SetupScreenProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-28 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 max-w-[1600px] mx-auto w-full">
         {/* Left Panel: Player List */}
         <section className="col-span-1 lg:col-span-4 flex flex-col gap-6 border border-[#ea2a33]/10 p-4 sm:p-6 rounded-xl bg-[#211111]/80 backdrop-blur-lg">
           <div className="flex items-center gap-3 border-b border-[#ea2a33]/20 pb-4">
@@ -214,8 +214,8 @@ export default function SetupScreen({ onStart }: SetupScreenProps) {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full p-4 sm:p-8 flex justify-center bg-gradient-to-t from-[#211111] via-[#211111]/90 to-transparent sticky bottom-0 z-40">
+      {/* Footer — fixed at bottom so it's always visible */}
+      <footer className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 flex justify-center bg-gradient-to-t from-[#211111] via-[#211111] to-[#211111]/80 z-50 border-t border-[#ea2a33]/20">
         <button
           className="group relative flex items-center justify-center gap-3 sm:gap-4 px-8 sm:px-16 py-4 sm:py-6 bg-[#ea2a33] rounded-xl border-2 border-[#d4af37] shadow-[0_0_40px_rgba(234,42,51,0.4)] hover:shadow-[0_0_60px_rgba(212,175,55,0.4)] transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleStart}
