@@ -18,6 +18,10 @@ export default function SetupScreen({ onStart }: SetupScreenProps) {
   const addPlayer = () => {
     const name = inputName.trim();
     if (!name) return;
+    if (players.length >= 2) {
+      setError('Game chỉ dành cho 2 người chơi');
+      return;
+    }
     if (players.includes(name)) {
       setError('Tên người chơi đã tồn tại');
       return;
@@ -36,8 +40,8 @@ export default function SetupScreen({ onStart }: SetupScreenProps) {
   };
 
   const handleStart = () => {
-    if (players.length < 2) {
-      setError('Cần ít nhất 2 người chơi');
+    if (players.length !== 2) {
+      setError('Cần đúng 2 người chơi');
       return;
     }
     onStart(players, tokens);
