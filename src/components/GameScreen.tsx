@@ -10,6 +10,7 @@ import TurnControls from './TurnControls';
 import RevealPanel from './RevealPanel';
 import QuestionOverlay from './QuestionOverlay';
 import PuzzleOverlay from './PuzzleOverlay';
+import R2TimedHintsOverlay from './R2TimedHintsOverlay';
 import HistoryLog from './HistoryLog';
 
 interface GameScreenProps {
@@ -17,6 +18,7 @@ interface GameScreenProps {
   onSelectVali: (id: number) => { ok: boolean; reason?: string };
   onSetP1: (id: string) => void;
   onSetP2: (id: string) => void;
+  onActivateStar: () => { ok: boolean; reason?: string };
   onDecision: (d: StealDecision) => { ok: boolean; reason?: string };
   onReveal: () => { ok: boolean; reason?: string };
   onQuestionResult: (correct: boolean) => void;
@@ -32,6 +34,7 @@ export default function GameScreen({
   onSelectVali,
   onSetP1,
   onSetP2,
+  onActivateStar,
   onDecision,
   onReveal,
   onQuestionResult,
@@ -134,8 +137,10 @@ export default function GameScreen({
               p2Id={turn.p2Id}
               phase={turn.phase}
               selectedValiId={turn.selectedValiId}
+              starActive={turn.starActive}
               onSetP1={onSetP1}
               onSetP2={onSetP2}
+              onActivateStar={onActivateStar}
               onDecision={onDecision}
               onReveal={onReveal}
               onUndo={onUndo}
@@ -158,8 +163,8 @@ export default function GameScreen({
             />
           </div>
 
-          {/* Reveal Panel (below grid) — shows for NON-question & NON-puzzle vali types & pre-reveal states */}
-          {turn.selectedValiId && turn.phase !== 'resolvingQuestion' && !(selectedVali?.type === 'challenge' && turn.phase === 'resolvingChallenge' && (selectedVali as ChallengeVali).code === 'R1') && (
+          {/* Reveal Panel (below grid) — shows for NON-question & NON-puzzle & NON-R2 vali types & pre-reveal states */}
+          {turn.selectedValiId && turn.phase !== 'resolvingQuestion' && !(selectedVali?.type === 'challenge' && turn.phase === 'resolvingChallenge' && ((selectedVali as ChallengeVali).code === 'R1' || (selectedVali as ChallengeVali).code === 'R2')) && (
             <div className="shrink-0">
               <RevealPanel
                 vali={selectedVali}
@@ -182,6 +187,7 @@ export default function GameScreen({
           vali={selectedVali as QuestionVali}
           holder={holder}
           decision={turn.decision}
+          starActive={turn.starActive}
           onQuestionResult={onQuestionResult}
         />
       )}
@@ -191,6 +197,17 @@ export default function GameScreen({
         <PuzzleOverlay
           vali={selectedVali as ChallengeVali}
           holder={holder}
+          starActive={turn.starActive}
+          onChallengeResult={onChallengeResult}
+        />
+      )}
+
+      {/* R2 Timed Hints Overlay — full-screen for challenge R2 */}
+      {selectedVali && selectedVali.type === 'challenge' && turn.phase === 'resolvingChallenge' && (selectedVali as ChallengeVali).code === 'R2' && (
+        <R2TimedHintsOverlay
+          vali={selectedVali as ChallengeVali}
+          holder={holder}
+          starActive={turn.starActive}
           onChallengeResult={onChallengeResult}
         />
       )}

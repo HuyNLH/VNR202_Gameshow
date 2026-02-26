@@ -31,7 +31,7 @@ function createValiDefinitions(): ValiDef[] {
     { type: 'penalty', code: 'P-10', penaltyPoints: -10 },                                        // 02
     { type: 'question', code: 'Q-EASY-03', difficulty: 'easy', points: 5, questionId: 'C3' },      // 03
     { type: 'question', code: 'Q-HARD-01', difficulty: 'hard', points: 15, questionId: 'C9' },     // 04
-    { type: 'perk', code: 'D2', perkType: 'peek', label: 'Xem trộm' },                            // 05
+    { type: 'perk', code: 'D2', perkType: 'star', label: 'Ngôi sao hi vọng' },                      // 05
     { type: 'question', code: 'Q-EASY-01', difficulty: 'easy', points: 5, questionId: 'C1' },      // 06
     { type: 'challenge', code: 'R2', successPoints: 15, failPoints: -10, label: 'R2' },            // 07
     { type: 'question', code: 'Q-MED-04', difficulty: 'medium', points: 10, questionId: 'C8' },    // 08

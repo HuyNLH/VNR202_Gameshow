@@ -40,7 +40,7 @@ export interface ChallengeVali extends ValiBase {
 /** Vali đặc quyền */
 export interface PerkVali extends ValiBase {
   type: 'perk';
-  perkType: 'shield' | 'peek'; // D1=shield, D2=peek
+  perkType: 'shield' | 'star'; // D1=shield, D2=star (Ngôi sao hi vọng)
   label: string;
 }
 
@@ -95,7 +95,7 @@ export interface Player {
   stealTokens: number;
   consecutiveSteals: number; // track consecutive steals for this player
   shields: number;           // Lá chắn count
-  peeks: number;             // Xem trộm count
+  stars: number;             // Ngôi sao hi vọng count
   // Stats
   totalSteals: number;
   correctAnswers: number;
@@ -123,6 +123,8 @@ export interface TurnState {
   holderId: string | null;   // ai giữ vali sau quyết định
   /** Whether shield prompt is active (for penalty valis) */
   shieldPromptActive: boolean;
+  /** Whether P1 activated a star for this turn */
+  starActive: boolean;
 }
 
 // ─── Log Entry ──────────────────────────────────────

@@ -1,20 +1,21 @@
 /* =====================================================
-   PuzzleOverlay.tsx — Trò chơi ghép hình 3×3
-   Thử thách R1: Ghép 9 mảnh thành hình hoàn chỉnh
-   trong 45 giây.
+   PuzzleOverlay.tsx — Trò chơi ghép hình 4×4
+   Thử thách R1: Ghép 16 mảnh thành hình hoàn chỉnh
+   trong 60 giây.
    ===================================================== */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChallengeVali, Player } from '../types';
 
-const GRID = 3;
+const GRID = 4;
 const TOTAL = GRID * GRID;
-const TIME_LIMIT = 45;
+const TIME_LIMIT = 60;
 const IMAGE_SRC = '/puzzle-r1.jpg';
 
 interface PuzzleOverlayProps {
   vali: ChallengeVali;
   holder: Player | null;
+  starActive: boolean;
   onChallengeResult: (success: boolean) => void;
 }
 
@@ -47,6 +48,7 @@ function generateSolvableShuffle(): number[] {
 export default function PuzzleOverlay({
   vali,
   holder,
+  starActive,
   onChallengeResult,
 }: PuzzleOverlayProps) {
   const [pieces, setPieces] = useState<number[]>(() => generateSolvableShuffle());
@@ -141,7 +143,7 @@ export default function PuzzleOverlay({
             <span className="px-4 py-1.5 rounded-full bg-amber-500 text-white text-sm font-black tracking-widest uppercase">
               THỬ THÁCH
             </span>
-            <span className="text-white font-bold text-lg">Ghép hình 3×3</span>
+            <span className="text-white font-bold text-lg">Ghép hình 4×4</span>
           </div>
 
           {/* Timer */}
@@ -170,11 +172,12 @@ export default function PuzzleOverlay({
         <div className="shrink-0 flex items-center justify-between px-6 py-2 bg-white/[0.02] border-b border-white/5 text-xs">
           <div className="flex items-center gap-4">
             <span className="text-slate-400">
-              Thành công: <span className="text-emerald-400 font-bold">+{vali.successPoints}</span>
+              Thành công: <span className="text-emerald-400 font-bold">+{starActive ? vali.successPoints * 2 : vali.successPoints}</span>
             </span>
             <span className="text-slate-400">
-              Thất bại: <span className="text-red-400 font-bold">{vali.failPoints}</span>
+              Thất bại: <span className="text-red-400 font-bold">{starActive ? vali.failPoints * 2 : vali.failPoints}</span>
             </span>
+            {starActive && <span className="text-amber-400 font-bold">⭐ ×2</span>}
           </div>
           <span className="text-slate-400">
             Số nước đi: <span className="text-white font-bold">{moves}</span>
@@ -264,8 +267,8 @@ export default function PuzzleOverlay({
                   </h3>
                   <p className="text-lg text-white/80">
                     {finished === 'success'
-                      ? `+${vali.successPoints} điểm • ${moves} nước • ${TIME_LIMIT - seconds}s`
-                      : `${vali.failPoints} điểm`}
+                      ? `+${starActive ? vali.successPoints * 2 : vali.successPoints} điểm • ${moves} nước • ${TIME_LIMIT - seconds}s${starActive ? ' ⭐' : ''}`
+                      : `${starActive ? vali.failPoints * 2 : vali.failPoints} điểm${starActive ? ' ⭐' : ''}`}
                   </p>
                 </div>
               )}

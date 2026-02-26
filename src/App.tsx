@@ -21,6 +21,7 @@ export default function App() {
           onSelectVali={game.handleSelectVali}
           onSetP1={game.setP1}
           onSetP2={game.setP2}
+          onActivateStar={game.handleActivateStar}
           onDecision={game.handleDecision}
           onReveal={game.handleReveal}
           onQuestionResult={game.handleQuestionResult}

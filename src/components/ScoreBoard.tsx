@@ -66,11 +66,11 @@ export default function ScoreBoard({ players, p1Id, p2Id }: ScoreBoardProps) {
                     {player.shields}
                   </span>
                 )}
-                {/* Peek */}
-                {player.peeks > 0 && (
-                  <span className="inline-flex items-center gap-0.5 text-purple-400 text-[10px] font-bold">
-                    <span className="material-symbols-outlined text-xs">visibility</span>
-                    {player.peeks}
+                {/* Star */}
+                {player.stars > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-amber-400 text-[10px] font-bold">
+                    <span className="material-symbols-outlined text-xs">star</span>
+                    {player.stars}
                   </span>
                 )}
                 {/* Consecutive steals warning */}

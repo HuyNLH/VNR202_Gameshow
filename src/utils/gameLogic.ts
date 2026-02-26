@@ -54,6 +54,7 @@ export function createInitialTurn(): TurnState {
     decision: null,
     holderId: null,
     shieldPromptActive: false,
+    starActive: false,
   };
 }
 
@@ -66,7 +67,7 @@ export function createPlayer(name: string, stealTokens: number): Player {
     stealTokens,
     consecutiveSteals: 0,
     shields: 0,
-    peeks: 0,
+    stars: 0,
     totalSteals: 0,
     correctAnswers: 0,
     totalAnswers: 0,
@@ -109,6 +110,15 @@ export function canSelectVali(
     return { ok: false, reason: 'Vali này đã được mở hoặc đang chọn' };
   }
   return { ok: true };
+}
+
+// ─── Action: Activate Star ────────────────────────
+export function activateStar(state: GameState): GameState {
+  const s = pushUndo(state);
+  const p1 = s.players.find((p) => p.id === s.turn.p1Id)!;
+  p1.stars -= 1;
+  s.turn.starActive = true;
+  return s;
 }
 
 // ─── Action: Select Vali ────────────────────────────
@@ -209,48 +219,32 @@ export function applyQuestionResult(
   const vali = s.valis.find((v) => v.id === valiId)! as QuestionVali;
   const holder = s.players.find((p) => p.id === s.turn.holderId)!;
   const scoreChanges: Record<string, number> = {};
+  const star = s.turn.starActive;
+  const multiplier = star ? 2 : 1;
 
   // Track answer stats
   holder.totalAnswers += 1;
 
   if (correct) {
-    // Cộng điểm theo vali
-    holder.score += vali.points;
+    const delta = vali.points * multiplier;
+    holder.score += delta;
     holder.correctAnswers += 1;
-    scoreChanges[holder.id] = vali.points;
+    scoreChanges[holder.id] = delta;
   } else {
-    // Sai: 0 điểm bình thường
-    let penalty = 0;
-    // Nếu người giữ là P2 và đã cướp → phạt thêm -3
-    if (s.turn.decision === 'steal' && s.turn.holderId === s.turn.p2Id) {
-      // Check nếu có lá chắn, cho phép dùng để chặn -3
-      // (Ở MVP, tự động hỏi dùng lá chắn nếu có)
-      if (holder.shields > 0) {
-        // Dùng lá chắn chặn -3
-        holder.shields -= 1;
-        penalty = 0;
-      } else {
-        penalty = -3;
-      }
+    // Star ON: sai = -2×points | Star OFF: sai = 0
+    if (star) {
+      const penalty = -(vali.points * 2);
       holder.score += penalty;
+      scoreChanges[holder.id] = penalty;
+    } else {
+      scoreChanges[holder.id] = 0;
     }
-    scoreChanges[holder.id] = penalty;
-  }
-
-  // Add phí cướp to scoreChanges for log
-  if (s.turn.decision === 'steal') {
-    const p2Id = s.turn.p2Id!;
-    scoreChanges[p2Id] = (scoreChanges[p2Id] || 0) - 2; // -2 already applied
-    // Correct: -2 was already applied in applyStealDecision, so just note it
-    // Actually we should NOT add it again — it's already in the score
-    // Let's just record the question-related changes here
-    // Remove the -2 we just erroneously added:
-    scoreChanges[p2Id] = (scoreChanges[p2Id] || 0) + 2; // undo the erroneous addition
   }
 
   // Log entry
   const p1 = s.players.find((p) => p.id === s.turn.p1Id)!;
   const p2 = s.players.find((p) => p.id === s.turn.p2Id)!;
+  const starTag = star ? ' ⭐' : '';
   const logEntry: LogEntry = {
     turnNumber: s.turnNumber,
     valiId,
@@ -263,9 +257,9 @@ export function applyQuestionResult(
     result: correct ? 'Đúng' : 'Sai',
     scoreChange: scoreChanges,
     description: correct
-      ? `${holder.name} trả lời đúng → +${vali.points} điểm`
-      : s.turn.decision === 'steal' && s.turn.holderId === s.turn.p2Id
-        ? `${holder.name} cướp & trả lời sai → -3 điểm`
+      ? `${holder.name} trả lời đúng → +${vali.points * multiplier} điểm${starTag}`
+      : star
+        ? `${holder.name} trả lời sai ⭐ → ${-(vali.points * 2)} điểm`
         : `${holder.name} trả lời sai → 0 điểm`,
   };
   s.log.push(logEntry);
@@ -325,13 +319,16 @@ export function applyChallengeResult(
   const vali = s.valis.find((v) => v.id === valiId)! as ChallengeVali;
   const holder = s.players.find((p) => p.id === s.turn.holderId)!;
   const scoreChanges: Record<string, number> = {};
+  const star = s.turn.starActive;
+  const multiplier = star ? 2 : 1;
 
-  const delta = success ? vali.successPoints : vali.failPoints;
+  const delta = (success ? vali.successPoints : vali.failPoints) * multiplier;
   holder.score += delta;
   scoreChanges[holder.id] = delta;
 
   const p1 = s.players.find((p) => p.id === s.turn.p1Id)!;
   const p2 = s.players.find((p) => p.id === s.turn.p2Id)!;
+  const starTag = star ? ' ⭐' : '';
   const logEntry: LogEntry = {
     turnNumber: s.turnNumber,
     valiId,
@@ -344,8 +341,8 @@ export function applyChallengeResult(
     result: success ? 'Thành công' : 'Thất bại',
     scoreChange: scoreChanges,
     description: success
-      ? `${holder.name} thử thách thành công → +${vali.successPoints} điểm`
-      : `${holder.name} thử thách thất bại → ${vali.failPoints} điểm`,
+      ? `${holder.name} thử thách thành công → +${vali.successPoints * multiplier} điểm${starTag}`
+      : `${holder.name} thử thách thất bại → ${vali.failPoints * multiplier} điểm${starTag}`,
   };
   s.log.push(logEntry);
 
@@ -363,8 +360,8 @@ export function applyPerk(state: GameState): GameState {
     // D1: Lá chắn — chặn 1 lần bị trừ điểm trực tiếp
     holder.shields += 1;
   } else {
-    // D2: Xem trộm — ghi nhận đặc quyền
-    holder.peeks += 1;
+    // D2: Ngôi sao hi vọng — ghi nhận token
+    holder.stars += 1;
   }
 
   const p1 = s.players.find((p) => p.id === s.turn.p1Id)!;
@@ -378,7 +375,7 @@ export function applyPerk(state: GameState): GameState {
     p2Name: p2.name,
     decision: s.turn.decision!,
     holderName: holder.name,
-    result: vali.perkType === 'shield' ? 'Lá chắn' : 'Xem trộm',
+    result: vali.perkType === 'shield' ? 'Lá chắn' : 'Ngôi sao hi vọng',
     scoreChange: {},
     description: `${holder.name} nhận đặc quyền: ${vali.label}`,
   };
@@ -405,8 +402,10 @@ export function applyTwist(state: GameState): GameState {
     leader = sortedPlayers[1];
   }
 
-  // Trừ tối đa maxSteal (10) điểm từ leader
-  const actualSteal = Math.min(vali.maxSteal, Math.max(0, leader.score));
+  // Trừ tối đa maxSteal (×2 nếu star) điểm từ leader
+  const star = s.turn.starActive;
+  const stealAmount = vali.maxSteal * (star ? 2 : 1);
+  const actualSteal = Math.min(stealAmount, Math.max(0, leader.score));
   
   // Find actual player references to modify
   const leaderRef = s.players.find((p) => p.id === leader.id)!;
@@ -429,7 +428,7 @@ export function applyTwist(state: GameState): GameState {
     holderName: holder.name,
     result: `Cướp ${actualSteal} điểm từ ${leaderRef.name}`,
     scoreChange: scoreChanges,
-    description: `${holder.name} cướp ${actualSteal} điểm từ người dẫn đầu (${leaderRef.name})`,
+    description: `${holder.name} cướp ${actualSteal} điểm từ người dẫn đầu (${leaderRef.name})${star ? ' ⭐' : ''}`,
   };
   s.log.push(logEntry);
 
@@ -497,7 +496,7 @@ export function getValiDisplayInfo(vali: Vali): {
     case 'perk':
       return {
         title: 'Đặc quyền',
-        description: vali.perkType === 'shield' ? 'Lá chắn (chặn 1 lần trừ điểm)' : 'Xem trộm',
+        description: vali.perkType === 'shield' ? 'Lá chắn (chặn 1 lần trừ điểm)' : 'Ngôi sao hi vọng ⭐',
         color: 'blue',
       };
     case 'twist':

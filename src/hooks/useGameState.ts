@@ -11,6 +11,7 @@ import {
   canSelectVali,
   canSteal,
   selectVali,
+  activateStar,
   applyStealDecision,
   revealVali,
   applyQuestionResult,
@@ -69,6 +70,32 @@ export function useGameState() {
       ...s,
       turn: { ...s.turn, p2Id: playerId },
     }));
+  }, []);
+
+  const handleActivateStar = useCallback((): { ok: boolean; reason?: string } => {
+    let result: { ok: boolean; reason?: string } = { ok: false, reason: '' };
+    setState((s) => {
+      if (s.turn.phase !== 'idle') {
+        result = { ok: false, reason: 'Chỉ được dùng ⭐ trước khi chọn vali' };
+        return s;
+      }
+      if (!s.turn.p1Id) {
+        result = { ok: false, reason: 'Chưa chọn P1' };
+        return s;
+      }
+      const p1 = s.players.find((p) => p.id === s.turn.p1Id);
+      if (!p1 || p1.stars <= 0) {
+        result = { ok: false, reason: 'P1 không có ⭐ để dùng' };
+        return s;
+      }
+      if (s.turn.starActive) {
+        result = { ok: false, reason: '⭐ đã được bật rồi' };
+        return s;
+      }
+      result = { ok: true };
+      return activateStar(cloneState(s));
+    });
+    return result;
   }, []);
 
   const handleSelectVali = useCallback((valiId: number): { ok: boolean; reason?: string } => {
@@ -169,6 +196,7 @@ export function useGameState() {
     // Turn
     setP1,
     setP2,
+    handleActivateStar,
     handleSelectVali,
     handleDecision,
     handleReveal,

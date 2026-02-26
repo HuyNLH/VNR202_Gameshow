@@ -12,6 +12,7 @@ interface QuestionOverlayProps {
   vali: QuestionVali;
   holder: Player | null;
   decision: 'steal' | 'pass' | null;
+  starActive: boolean;
   onQuestionResult: (correct: boolean) => void;
 }
 
@@ -279,6 +280,7 @@ export default function QuestionOverlay({
   vali,
   holder,
   decision,
+  starActive,
   onQuestionResult,
 }: QuestionOverlayProps) {
   const question = vali.questionId ? getQuestionById(vali.questionId) : undefined;
@@ -331,8 +333,9 @@ export default function QuestionOverlay({
               {DIFF_LABELS[vali.difficulty]}
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-black text-white">+{vali.points}</span>
+              <span className="text-3xl font-black text-white">{starActive ? '×2 ' : '+'}{starActive ? vali.points * 2 : vali.points}</span>
               <span className="text-sm text-slate-400 font-bold uppercase">điểm</span>
+              {starActive && <span className="text-2xl ml-1">⭐</span>}
             </div>
             {question && (
               <span className="hidden sm:inline-flex items-center gap-1 bg-white/5 text-[#d4af37] text-xs font-bold px-3 py-1 rounded-full border border-white/5">
@@ -424,29 +427,39 @@ export default function QuestionOverlay({
         <div className="shrink-0 border-t border-white/10 bg-black/40 p-5 space-y-3">
           <div className="flex gap-4 max-w-2xl mx-auto">
             <button
-              className="flex-1 flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-2xl py-5 shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.97] group"
+              className="flex-1 flex flex-col items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-2xl py-5 shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.97] group"
               onClick={() => onQuestionResult(true)}
             >
-              <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">
-                check_circle
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">
+                  check_circle
+                </span>
+                <span className="text-2xl font-black uppercase tracking-wider">ĐÚNG</span>
+              </div>
+              <span className="text-sm font-bold opacity-80">
+                +{starActive ? vali.points * 2 : vali.points} điểm{starActive ? ' ⭐' : ''}
               </span>
-              <span className="text-2xl font-black uppercase tracking-wider">ĐÚNG</span>
             </button>
             <button
-              className="flex-1 flex items-center justify-center gap-3 bg-[#ea2a33] hover:bg-red-500 active:bg-red-700 text-white rounded-2xl py-5 shadow-lg shadow-[#ea2a33]/20 transition-all active:scale-[0.97] group"
+              className="flex-1 flex flex-col items-center justify-center gap-1 bg-[#ea2a33] hover:bg-red-500 active:bg-red-700 text-white rounded-2xl py-5 shadow-lg shadow-[#ea2a33]/20 transition-all active:scale-[0.97] group"
               onClick={() => onQuestionResult(false)}
             >
-              <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">
-                cancel
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">
+                  cancel
+                </span>
+                <span className="text-2xl font-black uppercase tracking-wider">SAI</span>
+              </div>
+              <span className="text-sm font-bold opacity-80">
+                {starActive ? `${-(vali.points * 2)} điểm ⭐` : '0 điểm'}
               </span>
-              <span className="text-2xl font-black uppercase tracking-wider">SAI</span>
             </button>
           </div>
-          {decision === 'steal' && (
-            <div className="flex items-center justify-center gap-2 bg-[#ea2a33]/10 py-2.5 rounded-xl border border-[#ea2a33]/20 max-w-2xl mx-auto">
-              <span className="material-symbols-outlined text-[#ea2a33] text-base">warning</span>
-              <p className="text-[#ea2a33] text-sm font-bold uppercase tracking-widest">
-                Phạt −3 điểm nếu cướp & trả lời sai
+          {starActive && (
+            <div className="flex items-center justify-center gap-2 bg-amber-500/15 py-2.5 rounded-xl border border-amber-500/30 max-w-2xl mx-auto">
+              <span className="text-xl">⭐</span>
+              <p className="text-amber-400 text-sm font-black uppercase tracking-widest">
+                Ngôi sao hi vọng — Sai = trừ gấp đôi!
               </p>
             </div>
           )}

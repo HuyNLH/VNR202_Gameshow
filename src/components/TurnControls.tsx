@@ -11,8 +11,10 @@ interface TurnControlsProps {
   p2Id: string | null;
   phase: TurnPhase;
   selectedValiId: number | null;
+  starActive: boolean;
   onSetP1: (id: string) => void;
   onSetP2: (id: string) => void;
+  onActivateStar: () => { ok: boolean; reason?: string };
   onDecision: (decision: 'steal' | 'pass') => { ok: boolean; reason?: string };
   onReveal: () => { ok: boolean; reason?: string };
   onUndo: () => void;
@@ -27,8 +29,10 @@ export default function TurnControls({
   p2Id,
   phase,
   selectedValiId,
+  starActive,
   onSetP1,
   onSetP2,
+  onActivateStar,
   onDecision,
   onReveal,
   onUndo,
@@ -43,6 +47,11 @@ export default function TurnControls({
 
   const handlePass = () => {
     const res = onDecision('pass');
+    if (!res.ok && res.reason) alert(res.reason);
+  };
+
+  const handleStarClick = () => {
+    const res = onActivateStar();
     if (!res.ok && res.reason) alert(res.reason);
   };
 
@@ -98,6 +107,16 @@ export default function TurnControls({
         </div>
       </div>
 
+      {/* Star Active Indicator */}
+      {starActive && (
+        <div className="flex items-center gap-2 bg-amber-500/20 px-4 py-2 rounded-lg border border-amber-500/50 animate-pulse">
+          <span className="text-xl">⭐</span>
+          <p className="text-amber-400 text-xs font-black uppercase tracking-wider">
+            Ngôi sao hi vọng — Nhân đôi điểm lượt này!
+          </p>
+        </div>
+      )}
+
       {/* Status Indicator */}
       <div className="flex items-center gap-2 bg-[#472426]/20 px-4 py-2 rounded-lg border border-[#472426]/40">
         <span className="material-symbols-outlined text-[#d4af37] text-sm">info</span>
@@ -115,6 +134,20 @@ export default function TurnControls({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
+        {/* Star — only show when idle, P1 selected, P1 has stars, star not yet active */}
+        {isIdle && p1Id && !starActive && (() => {
+          const p1 = players.find((p) => p.id === p1Id);
+          return p1 && p1.stars > 0;
+        })() && (
+          <button
+            className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 border border-amber-500/50 px-4 py-2.5 rounded-lg font-black text-sm transition-all hover:scale-105 active:scale-95"
+            onClick={handleStarClick}
+          >
+            <span className="text-lg">⭐</span>
+            DÙNG SAO
+          </button>
+        )}
+
         {/* Steal */}
         <button
           className="flex items-center gap-2 bg-[#ea2a33]/20 hover:bg-[#ea2a33]/40 text-[#ea2a33] border border-[#ea2a33]/50 px-4 py-2.5 rounded-lg font-bold text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
