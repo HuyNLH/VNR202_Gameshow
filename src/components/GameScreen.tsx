@@ -3,6 +3,7 @@
    Layout: No left sidebar, optimized for classroom projection
    ===================================================== */
 
+import { useState } from 'react';
 import type { GameState, StealDecision, QuestionVali, ChallengeVali } from '../types';
 import ValiGrid from './ValiGrid';
 import ScoreBoard from './ScoreBoard';
@@ -12,6 +13,7 @@ import QuestionOverlay from './QuestionOverlay';
 import PuzzleOverlay from './PuzzleOverlay';
 import R2TimedHintsOverlay from './R2TimedHintsOverlay';
 import HistoryLog from './HistoryLog';
+import { bgmToggle, bgmIsPlaying } from '../utils/sounds';
 
 interface GameScreenProps {
   state: GameState;
@@ -74,6 +76,13 @@ export default function GameScreen({
   // Disable vali clicking in non-idle phases
   const gridDisabled = turn.phase !== 'idle';
 
+  const [musicOn, setMusicOn] = useState(bgmIsPlaying);
+
+  const toggleMusic = () => {
+    const playing = bgmToggle();
+    setMusicOn(playing);
+  };
+
   const handleValiClick = (id: number) => {
     const res = onSelectVali(id);
     if (!res.ok && res.reason) {
@@ -99,6 +108,17 @@ export default function GameScreen({
           </div>
         </div>
         <div className="flex items-center gap-4">
+          {/* Music toggle */}
+          <button
+            onClick={toggleMusic}
+            title={musicOn ? 'Tắt nhạc nền' : 'Bật nhạc nền'}
+            className="flex items-center justify-center w-9 h-9 rounded-lg transition-colors
+              bg-[#472426]/60 hover:bg-[#472426] text-white/80 hover:text-white"
+          >
+            <span className="material-symbols-outlined text-xl">
+              {musicOn ? 'music_note' : 'music_off'}
+            </span>
+          </button>
           <div className="text-right">
             <p className="text-slate-400 text-[10px] uppercase tracking-widest">Trạng thái</p>
             <p className="text-[#d4af37] font-bold text-sm">{phaseLabels[turn.phase] || turn.phase}</p>

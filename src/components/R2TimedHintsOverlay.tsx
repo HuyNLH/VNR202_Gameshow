@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChallengeVali, Player } from '../types';
+import { sfxTimerTick, sfxTimeUp, sfxHintReveal, sfxSubmitAnswer } from '../utils/sounds';
 
 /* ─── Config ─────────────────────────────────────── */
 const DURATION_SEC = 40;
@@ -74,20 +75,31 @@ export default function R2TimedHintsOverlay({
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevHintCountRef = useRef(0);
 
   // Which hints are visible
-  const visibleHintCount = HINTS.filter((h) => seconds <= DURATION_SEC - (DURATION_SEC - h.revealAtRemainingSec)).length;
+  const visibleHintCount = HINTS.filter((h) => seconds <= h.revealAtRemainingSec).length;
   // simpler: hint is visible if remaining seconds <= hint.revealAtRemainingSec
   const isHintVisible = (idx: number) => seconds <= HINTS[idx].revealAtRemainingSec;
 
+  // Play sound when a new hint appears
+  useEffect(() => {
+    if (visibleHintCount > prevHintCountRef.current && visibleHintCount > 0) {
+      sfxHintReveal();
+    }
+    prevHintCountRef.current = visibleHintCount;
+  }, [visibleHintCount]);
+
   // Timer
   useEffect(() => {
-    if (phase === 'revealed') return;
+    if (phase === 'revealed' || phase === 'submitted' || phase === 'timeUp') return;
     intervalRef.current = setInterval(() => {
       setSeconds((s) => {
         if (s <= 1) {
+          sfxTimeUp();
           return 0;
         }
+        if (s <= 6) sfxTimerTick();
         return s - 1;
       });
     }, 1000);
@@ -111,6 +123,7 @@ export default function R2TimedHintsOverlay({
   // Submit answer
   const handleSubmit = useCallback(() => {
     if (phase !== 'running') return;
+    sfxSubmitAnswer();
     const normalized = normalizeAnswer(userAnswer);
     const correct = ACCEPTED_NORMALIZED.includes(normalized);
     setIsCorrect(correct);
@@ -124,11 +137,9 @@ export default function R2TimedHintsOverlay({
 
   // Close & send result to parent
   const handleClose = useCallback(() => {
-    const submitted = phase === 'revealed' && isCorrect !== null;
-    // If never submitted or wrong → fail
     const success = isCorrect === true;
     onChallengeResult(success);
-  }, [phase, isCorrect, onChallengeResult]);
+  }, [isCorrect, onChallengeResult]);
 
   // Host override buttons
   const handleHostOverride = useCallback((success: boolean) => {
@@ -140,8 +151,8 @@ export default function R2TimedHintsOverlay({
     seconds <= 6 ? 'text-red-400' : seconds <= 12 ? 'text-amber-400' : 'text-emerald-400';
 
   // Points display
-  const successPts = POINTS_SUCCESS * multiplier;
-  const failPts = POINTS_FAIL * multiplier;
+  const successPts = vali.successPoints * multiplier;
+  const failPts = vali.failPoints * multiplier;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-in">
@@ -188,11 +199,6 @@ export default function R2TimedHintsOverlay({
         <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
           {HINTS.map((hint, idx) => {
             const visible = isHintVisible(idx);
-            const nextRevealIn = visible ? 0 : HINTS[idx].revealAtRemainingSec - (DURATION_SEC - seconds);
-            // time until this hint reveals = revealAtRemainingSec - (DURATION_SEC - seconds) doesn't work
-            // remaining seconds when hint shows = revealAtRemainingSec
-            // current remaining = seconds
-            // hint shows when seconds <= revealAtRemainingSec → wait = seconds - revealAtRemainingSec
             const waitSec = visible ? 0 : seconds - HINTS[idx].revealAtRemainingSec;
 
             return (

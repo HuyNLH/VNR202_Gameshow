@@ -19,13 +19,13 @@ export default function HistoryLog({ log }: HistoryLogProps) {
 
   return (
     <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto custom-scrollbar">
-      {[...log].reverse().map((entry, i) => {
+      {[...log].reverse().map((entry) => {
         const decisionLabel = entry.decision === 'steal' ? 'CƯỚP' : 'BỎ';
         const decisionColor = entry.decision === 'steal' ? 'text-[#ea2a33]' : 'text-emerald-400';
 
         return (
           <div
-            key={i}
+            key={`${entry.turnNumber}-${entry.valiId}`}
             className="flex items-center gap-3 p-2 rounded bg-white/5 text-xs border border-white/5 hover:bg-white/10 transition-colors"
           >
             <span className="text-[#d4af37] font-bold w-14 shrink-0">

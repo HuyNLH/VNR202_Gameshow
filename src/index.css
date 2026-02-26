@@ -10,7 +10,6 @@
   --color-history-paper: #f4e4bc;
 
   --font-display: "Lexend", sans-serif;
-  --font-serif: "Noto Serif", serif;
 }
 
 /* ─── Base ────────────────────────────────────────── */
@@ -19,8 +18,11 @@ html, body, #root {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden;
   font-family: var(--font-display);
+}
+
+#root {
+  overflow: hidden;
 }
 
 body {

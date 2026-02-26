@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChallengeVali, Player } from '../types';
+import { sfxTimerTick, sfxTimeUp } from '../utils/sounds';
 
 const GRID = 4;
 const TOTAL = GRID * GRID;
@@ -58,6 +59,7 @@ export default function PuzzleOverlay({
   const [showPreview, setShowPreview] = useState(true); // Show full image first
   const [moves, setMoves] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const calledRef = useRef(false);
 
   // Check if puzzle is solved
   const isSolved = pieces.every((v, i) => v === i);
@@ -79,9 +81,11 @@ export default function PuzzleOverlay({
     intervalRef.current = setInterval(() => {
       setSeconds((s) => {
         if (s <= 1) {
+          sfxTimeUp();
           setFinished('fail');
           return 0;
         }
+        if (s <= 6) sfxTimerTick();
         return s - 1;
       });
     }, 1000);
@@ -122,9 +126,12 @@ export default function PuzzleOverlay({
 
   // Auto submit result after a short delay
   useEffect(() => {
-    if (finished) {
+    if (finished && !calledRef.current) {
       const t = setTimeout(() => {
-        onChallengeResult(finished === 'success');
+        if (!calledRef.current) {
+          calledRef.current = true;
+          onChallengeResult(finished === 'success');
+        }
       }, 2500);
       return () => clearTimeout(t);
     }
@@ -291,7 +298,7 @@ export default function PuzzleOverlay({
           <div className="shrink-0 px-6 py-3 border-t border-white/5 flex justify-center gap-3">
             <button
               className="text-xs text-slate-500 hover:text-emerald-400 flex items-center gap-1 transition-colors"
-              onClick={() => setFinished('success')}
+              onClick={() => { if (!calledRef.current) { calledRef.current = true; setFinished('success'); onChallengeResult(true); } }}
             >
               <span className="material-symbols-outlined text-sm">check</span>
               Quản trò: Thành công
@@ -299,7 +306,7 @@ export default function PuzzleOverlay({
             <span className="text-slate-700">|</span>
             <button
               className="text-xs text-slate-500 hover:text-red-400 flex items-center gap-1 transition-colors"
-              onClick={() => setFinished('fail')}
+              onClick={() => { if (!calledRef.current) { calledRef.current = true; setFinished('fail'); onChallengeResult(false); } }}
             >
               <span className="material-symbols-outlined text-sm">close</span>
               Quản trò: Thất bại

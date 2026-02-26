@@ -2,7 +2,7 @@
    useGameState.ts — Central game state hook
    ===================================================== */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { GameState, StealDecision } from '../types';
 import { generateValis } from '../data/seedValis';
 import {
@@ -21,6 +21,24 @@ import {
   undo as undoAction,
   cloneState,
 } from '../utils/gameLogic';
+import {
+  sfxSelectVali,
+  sfxSteal,
+  sfxPass,
+  sfxReveal,
+  sfxCorrect,
+  sfxWrong,
+  sfxChallengeSuccess,
+  sfxChallengeFail,
+  sfxStarActivate,
+  sfxShieldUse,
+  sfxPenalty,
+  sfxNextTurn,
+  sfxGameStart,
+  sfxGameEnd,
+  bgmStart,
+  bgmStop,
+} from '../utils/sounds';
 
 function createInitialState(): GameState {
   return {
@@ -37,6 +55,16 @@ function createInitialState(): GameState {
 
 export function useGameState() {
   const [state, setState] = useState<GameState>(createInitialState);
+  const prevScreenRef = useRef(state.screen);
+
+  // Detect game ending (natural or manual) → stop BGM & play fanfare
+  useEffect(() => {
+    if (state.screen === 'end' && prevScreenRef.current !== 'end') {
+      bgmStop();
+      sfxGameEnd();
+    }
+    prevScreenRef.current = state.screen;
+  }, [state.screen]);
 
   // ─── Setup Actions ──────────────────────────────
   const setDefaultTokens = useCallback((tokens: number) => {
@@ -44,6 +72,8 @@ export function useGameState() {
   }, []);
 
   const startGame = useCallback((playerNames: string[], tokens: number) => {
+    sfxGameStart();
+    bgmStart();
     setState((s) => ({
       ...s,
       screen: 'game',
@@ -95,6 +125,7 @@ export function useGameState() {
       result = { ok: true };
       return activateStar(cloneState(s));
     });
+    if (result.ok) sfxStarActivate();
     return result;
   }, []);
 
@@ -106,6 +137,7 @@ export function useGameState() {
       if (!check.ok) return s;
       return selectVali(s, valiId);
     });
+    if (result.ok) sfxSelectVali();
     return result;
   }, []);
 
@@ -130,6 +162,9 @@ export function useGameState() {
       }
       return applyStealDecision(cloneState(s), decision);
     });
+    if (result.ok) {
+      if (decision === 'steal') sfxSteal(); else sfxPass();
+    }
     return result;
   }, []);
 
@@ -142,10 +177,12 @@ export function useGameState() {
       }
       return revealVali(cloneState(s));
     });
+    if (result.ok) sfxReveal();
     return result;
   }, []);
 
   const handleQuestionResult = useCallback((correct: boolean) => {
+    if (correct) sfxCorrect(); else sfxWrong();
     setState((s) => {
       if (s.turn.phase !== 'resolvingQuestion') return s;
       return applyQuestionResult(cloneState(s), correct);
@@ -153,23 +190,31 @@ export function useGameState() {
   }, []);
 
   const handlePenaltyShield = useCallback((useShield: boolean) => {
+    if (useShield) sfxShieldUse(); else sfxPenalty();
     setState((s) => {
       return applyPenalty(cloneState(s), useShield);
     });
   }, []);
 
   const handleChallengeResult = useCallback((success: boolean) => {
+    let isShieldPrompt = false;
     setState((s) => {
       if (s.turn.phase !== 'resolvingChallenge') return s;
-      // Check if this is actually a shield prompt for penalty
       if (s.turn.shieldPromptActive) {
-        return applyPenalty(cloneState(s), success); // success = useShield
+        isShieldPrompt = true;
+        return applyPenalty(cloneState(s), success);
       }
       return applyChallengeResult(cloneState(s), success);
     });
+    if (isShieldPrompt) {
+      if (success) sfxShieldUse(); else sfxPenalty();
+    } else {
+      if (success) sfxChallengeSuccess(); else sfxChallengeFail();
+    }
   }, []);
 
   const handleNextTurn = useCallback(() => {
+    sfxNextTurn();
     setState((s) => {
       if (s.turn.phase !== 'resolved') return s;
       return resetTurn(s);
@@ -185,6 +230,8 @@ export function useGameState() {
   }, []);
 
   const handleEndGame = useCallback(() => {
+    if (!confirm('Bạn có chắc muốn kết thúc game?')) return;
+    // bgmStop + sfxGameEnd handled by useEffect watching screen
     setState((s) => ({ ...s, screen: 'end' }));
   }, []);
 

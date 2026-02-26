@@ -281,7 +281,7 @@ export default function RevealPanel({
               <div className="flex items-center justify-center gap-2 bg-[#ea2a33]/10 py-2 rounded-lg border border-[#ea2a33]/20">
                 <span className="material-symbols-outlined text-[#ea2a33] text-sm">warning</span>
                 <p className="text-[#ea2a33] text-xs font-bold uppercase tracking-widest">
-                  Phạt -3 điểm nếu cướp & trả lời sai
+                  Phí cướp: -2 điểm (đã trừ)
                 </p>
               </div>
             )}

@@ -7,6 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { QuestionVali, Player, Question } from '../types';
 import { getQuestionById } from '../data/questionBank';
+import { sfxTimerTick, sfxTimeUp } from '../utils/sounds';
 
 interface QuestionOverlayProps {
   vali: QuestionVali;
@@ -93,7 +94,6 @@ function CircularTimer({
           cy="70"
           r={radius}
           fill="none"
-          stroke={isLow ? '#ef4444' : DIFF_RING[difficulty]?.replace('text-', '') || '#d4af37'}
           strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -305,9 +305,11 @@ export default function QuestionOverlay({
     intervalRef.current = setInterval(() => {
       setSeconds((s) => {
         if (s <= 1) {
+          sfxTimeUp();
           setExpired(true);
           return 0;
         }
+        if (s <= 6) sfxTimerTick();
         return s - 1;
       });
     }, 1000);

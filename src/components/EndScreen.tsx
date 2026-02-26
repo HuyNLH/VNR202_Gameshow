@@ -104,10 +104,10 @@ export default function EndScreen({ state, onRestart }: EndScreenProps) {
               <p className="text-slate-400 mt-2">Chúc mừng các chiến sĩ xuất sắc nhất!</p>
             </div>
 
-            <div className="flex items-end justify-center gap-2 sm:gap-4 h-full max-h-[400px]">
+            <div className={`flex items-end justify-center gap-2 sm:gap-4 h-full max-h-[400px] ${!third ? 'max-w-md mx-auto' : ''}`}>
               {/* Rank 2 */}
               {second && (
-                <div className="flex flex-col items-center w-1/3 max-w-[160px]">
+                <div className={`flex flex-col items-center ${third ? 'w-1/3' : 'w-1/2'} max-w-[160px]`}>
                   <div className="mb-4 relative">
                     <div className="size-20 rounded-full border-4 border-slate-300 bg-slate-700 flex items-center justify-center">
                       <span className="material-symbols-outlined text-4xl text-slate-300">person</span>
@@ -128,7 +128,7 @@ export default function EndScreen({ state, onRestart }: EndScreenProps) {
 
               {/* Rank 1 */}
               {first && (
-                <div className="flex flex-col items-center w-1/3 max-w-[200px]">
+                <div className={`flex flex-col items-center ${third ? 'w-1/3' : 'w-1/2'} max-w-[200px]`}>
                   <div className="mb-6 relative">
                     <div className="size-28 rounded-full border-4 border-amber-400 bg-slate-700 flex items-center justify-center shadow-[0_0_30px_rgba(251,191,36,0.3)]">
                       <span className="material-symbols-outlined text-6xl text-amber-400">person</span>

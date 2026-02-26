@@ -22,7 +22,7 @@ export default function SetupScreen({ onStart }: SetupScreenProps) {
       setError('Game chỉ dành cho 2 người chơi');
       return;
     }
-    if (players.includes(name)) {
+    if (players.some(p => p.toLowerCase() === name.toLowerCase())) {
       setError('Tên người chơi đã tồn tại');
       return;
     }
