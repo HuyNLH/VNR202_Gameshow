@@ -3,12 +3,13 @@
    Layout: No left sidebar, optimized for classroom projection
    ===================================================== */
 
-import type { GameState, StealDecision, QuestionVali } from '../types';
+import type { GameState, StealDecision, QuestionVali, ChallengeVali } from '../types';
 import ValiGrid from './ValiGrid';
 import ScoreBoard from './ScoreBoard';
 import TurnControls from './TurnControls';
 import RevealPanel from './RevealPanel';
 import QuestionOverlay from './QuestionOverlay';
+import PuzzleOverlay from './PuzzleOverlay';
 import HistoryLog from './HistoryLog';
 
 interface GameScreenProps {
@@ -157,8 +158,8 @@ export default function GameScreen({
             />
           </div>
 
-          {/* Reveal Panel (below grid) — shows for NON-question vali types & pre-reveal states */}
-          {turn.selectedValiId && turn.phase !== 'resolvingQuestion' && (
+          {/* Reveal Panel (below grid) — shows for NON-question & NON-puzzle vali types & pre-reveal states */}
+          {turn.selectedValiId && turn.phase !== 'resolvingQuestion' && !(selectedVali?.type === 'challenge' && turn.phase === 'resolvingChallenge' && (selectedVali as ChallengeVali).code === 'R1') && (
             <div className="shrink-0">
               <RevealPanel
                 vali={selectedVali}
@@ -182,6 +183,15 @@ export default function GameScreen({
           holder={holder}
           decision={turn.decision}
           onQuestionResult={onQuestionResult}
+        />
+      )}
+
+      {/* Puzzle Overlay — full-screen for challenge R1 (ghép hình) */}
+      {selectedVali && selectedVali.type === 'challenge' && turn.phase === 'resolvingChallenge' && (selectedVali as ChallengeVali).code === 'R1' && (
+        <PuzzleOverlay
+          vali={selectedVali as ChallengeVali}
+          holder={holder}
+          onChallengeResult={onChallengeResult}
         />
       )}
 
